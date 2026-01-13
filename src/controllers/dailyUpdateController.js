@@ -1,7 +1,7 @@
 import DailyUpdate from '../models/DailyUpdate.js';
 import Project from '../models/Project.js';
 import Module from '../models/Module.js';
-import User from '../models/User.js';
+import User from '../models/user.js';
 
 // @desc    Create daily update (User only)
 // @route   POST /api/daily-updates

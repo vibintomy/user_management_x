@@ -1,6 +1,6 @@
 import Module from '../models/Module.js';
 import Project from '../models/Project.js';
-import User from '../models/User.js';
+import User from '../models/user.js';
 
 // @desc    Create module (Lead only)
 // @route   POST /api/projects/:projectId/modules

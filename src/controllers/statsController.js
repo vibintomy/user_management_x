@@ -1,7 +1,7 @@
 import UserStats from '../models/UserStats.js';
 import Project from '../models/Project.js';
 import DailyUpdate from '../models/DailyUpdate.js';
-import User from '../models/User.js';
+import User from '../models/user.js';
 
 // @desc    Get user's own statistics
 // @route   GET /api/stats/my-stats
