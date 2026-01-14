@@ -67,6 +67,8 @@ export const getAllProjects = async (req, res, next) => {
     // If user is Lead, only show their assigned projects
     if (req.user.role === 'lead') {
       query.assignedLead = req.user._id;
+    }else if(req.user.role=='user'){
+      query.assignedUsers = req.user._id;
     }
 
     // Filters
