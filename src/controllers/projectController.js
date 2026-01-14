@@ -254,7 +254,6 @@ export const assignUsersToProject = async (req, res, next) => {
       });
     }
 
-    // Check if lead owns this project
     if (project.assignedLead.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -262,7 +261,6 @@ export const assignUsersToProject = async (req, res, next) => {
       });
     }
 
-    // Verify all users exist, are approved, and in same department
     const users = await User.find({
       _id: { $in: userIds },
       role: 'user',
@@ -278,21 +276,42 @@ export const assignUsersToProject = async (req, res, next) => {
       });
     }
 
-    // Add users to project (avoid duplicates)
-    const existingUserIds = project.assignedUsers.map(id => id.toString());
-    const newUserIds = userIds.filter(id => !existingUserIds.includes(id));
-    
-    project.assignedUsers.push(...newUserIds);
-    await project.save();
+    // ── CRITICAL FIX ── Convert strings to ObjectIds
+    const newUserObjectIds = userIds
+      .filter(id => !project.assignedUsers.some(existing => existing.toString() === id))
+      .map(id => new mongoose.Types.ObjectId(id));   // ← this is the most important line!
 
-    await project.populate('assignedUsers', 'name email department');
+    if (newUserObjectIds.length === 0) {
+      // No new users to add
+      await project.populate('assignedUsers', 'name email department');
+      return res.status(200).json({
+        success: true,
+        message: 'No new users to assign',
+        data: project
+      });
+    }
+
+    // Use $addToSet instead of push (safer + atomic)
+    const updatedProject = await Project.findByIdAndUpdate(
+      req.params.id,
+      {
+        $addToSet: { assignedUsers: { $each: newUserObjectIds } },
+        updatedAt: Date.now()
+      },
+      { new: true } // return updated document
+    ).populate('assignedUsers', 'name email department');
+
+    if (!updatedProject) {
+      throw new Error('Failed to update project');
+    }
 
     res.status(200).json({
       success: true,
-      message: `${newUserIds.length} user(s) assigned to project`,
-      data: project
+      message: `${newUserObjectIds.length} user(s) assigned to project`,
+      data: updatedProject
     });
   } catch (error) {
+    console.error('Assign users error:', error);
     next(error);
   }
 };
