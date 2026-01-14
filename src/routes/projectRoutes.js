@@ -18,7 +18,7 @@ const router = express.Router();
 router.use(protect);
 
 // Admin and Lead can view projects
-router.get('/', authorize('admin', 'lead'), getAllProjects);
+router.get('/', authorize('admin', 'lead','user'), getAllProjects);
 
 // Admin only - Create, Update, Delete projects
 router.post('/', authorize('admin'), createProject);
