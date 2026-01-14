@@ -26,6 +26,6 @@ router.put('/:id', authorize('lead'), updateModule);
 router.delete('/:id', authorize('lead'), deleteModule);
 
 // Update module progress (Lead only)
-router.patch('/:id/progress', authorize('lead'), updateModuleProgress);
+router.patch('/:id/progress', authorize('lead','user'), updateModuleProgress);
 
 export default router;
