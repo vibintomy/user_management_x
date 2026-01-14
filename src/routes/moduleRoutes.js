@@ -18,7 +18,7 @@ router.use(protect);
 router.post('/projects/:projectId/modules', authorize('lead'), createModule);
 
 // Get all modules for a project (Admin & Lead)
-router.get('/projects/:projectId/modules', authorize('admin', 'lead'), getModulesByProject);
+router.get('/projects/:projectId/modules', authorize('admin', 'lead','user'), getModulesByProject);
 
 // Get, Update, Delete single module
 router.get('/:id', authorize('admin', 'lead'), getModule);
