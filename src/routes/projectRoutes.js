@@ -25,7 +25,7 @@ router.post('/', authorize('admin'), createProject);
 router.get('/available-leads/:department', authorize('admin'), getAvailableLeads);
 
 // Admin and Lead can view single project
-router.get('/:id', authorize('admin', 'lead'), getProject);
+router.get('/:id', authorize('admin', 'lead','user'), getProject);
 
 // Admin only - Update and Delete
 router.put('/:id', authorize('admin'), updateProject);
