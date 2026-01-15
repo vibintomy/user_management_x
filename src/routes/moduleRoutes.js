@@ -21,8 +21,8 @@ router.post('/projects/:projectId/modules', authorize('lead'), createModule);
 router.get('/projects/:projectId/modules', authorize('admin', 'lead','user'), getModulesByProject);
 
 // Get, Update, Delete single module
-router.get('/:id', authorize('admin', 'lead'), getModule);
-router.put('/:id', authorize('lead'), updateModule);
+router.get('/:id', authorize('admin', 'lead','user'), getModule);
+router.put('/:id', authorize('lead','user'), updateModule);
 router.delete('/:id', authorize('lead'), deleteModule);
 
 // Update module progress (Lead only)
