@@ -282,54 +282,40 @@ export const deleteModule = async (req, res, next) => {
 // @desc    Update module progress (Lead only)
 // @route   PATCH /api/modules/:id/progress
 // @access  Private (Lead)
-export const updateModuleProgress = async (req, res, next) => {
+const updateModuleProgress = async (req, res) => {
   try {
-    const { progress, actualTime, status, notes } = req.body;
-
-    const module = await Module.findById(req.params.id).populate('project');
-
+    const module = await Module.findById(req.params.id);
+    
     if (!module) {
-      return res.status(404).json({
-        success: false,
-        message: 'Module not found'
-      });
+      return res.status(404).json({ success: false, message: "Module not found" });
     }
 
-    // Check if lead owns the project
-    if (module.project.assignedLead.toString() !== req.user._id.toString()) {
+    // New permission check
+    const isAssigned = module.assignedUsers?.some(
+      userId => userId.toString() === req.user._id.toString()
+    );
+
+    const isLead = module.assignedLead?.toString() === req.user._id.toString();
+
+    if (!isAssigned && !isLead) {
       return res.status(403).json({
         success: false,
-        message: 'Only the assigned lead can update progress'
+        message: "You are not assigned to this module"
       });
     }
 
-    if (progress !== undefined) module.progress = progress;
-    if (actualTime !== undefined) module.actualTime = actualTime;
-    if (status) module.status = status;
-    if (notes !== undefined) module.notes = notes;
-
-    // Auto-update status based on progress
-    if (progress === 100) {
-      module.status = 'completed';
-      if (!module.endDate) {
-        module.endDate = new Date();
-      }
-    } else if (progress > 0 && module.status === 'pending') {
-      module.status = 'in_progress';
-      if (!module.startDate) {
-        module.startDate = new Date();
-      }
+    // Optional: maybe prevent going backwards or above 100
+    if (req.body.progress < module.progress && module.progress > 0) {
+      return res.status(400).json({ message: "Cannot decrease progress" });
     }
+
+    module.progress = Math.min(100, Math.max(0, req.body.progress));
+    module.status = module.progress === 100 ? "completed" : "in_progress";
 
     await module.save();
 
-    res.status(200).json({
-      success: true,
-      message: 'Module progress updated successfully',
-      data: module
-    });
+    res.json({ success: true, module });
   } catch (error) {
-    next(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
