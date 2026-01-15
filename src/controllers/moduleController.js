@@ -185,12 +185,24 @@ export const updateModule = async (req, res, next) => {
     }
 
     // Check if lead owns the project
-    if (module.project.assignedLead.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Only the assigned lead can update modules'
-      });
-    }
+   // Authorization check
+const isLead =
+req.user.role === 'lead' &&
+module.project.assignedLead.toString() === req.user._id.toString();
+
+const isAssignedUser =
+req.user.role === 'user' &&
+module.assignedUsers.some(
+  userId => userId.toString() === req.user._id.toString()
+);
+
+if (!isLead && !isAssignedUser) {
+return res.status(403).json({
+  success: false,
+  message: 'Not authorized to update this module progress'
+});
+}
+
 
     // ✅ AUTO-ASSIGN: Add users to project if not already assigned
     if (assignedUsers && assignedUsers.length > 0) {
