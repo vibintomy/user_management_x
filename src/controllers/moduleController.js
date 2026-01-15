@@ -282,7 +282,9 @@ export const deleteModule = async (req, res, next) => {
 // @desc    Update module progress (Lead only)
 // @route   PATCH /api/modules/:id/progress
 // @access  Private (Lead)
-const updateModuleProgress = async (req, res) => {
+// At the very bottom of moduleController.js, replace your current updateModuleProgress definition with:
+
+export const updateModuleProgress = async (req, res) => {
   try {
     const module = await Module.findById(req.params.id);
     
@@ -290,7 +292,6 @@ const updateModuleProgress = async (req, res) => {
       return res.status(404).json({ success: false, message: "Module not found" });
     }
 
-    // New permission check
     const isAssigned = module.assignedUsers?.some(
       userId => userId.toString() === req.user._id.toString()
     );
@@ -304,12 +305,11 @@ const updateModuleProgress = async (req, res) => {
       });
     }
 
-    // Optional: maybe prevent going backwards or above 100
     if (req.body.progress < module.progress && module.progress > 0) {
       return res.status(400).json({ message: "Cannot decrease progress" });
     }
 
-    module.progress = Math.min(100, Math.max(0, req.body.progress));
+    module.progress = Math.min(100, Math.max(0, Number(req.body.progress)));
     module.status = module.progress === 100 ? "completed" : "in_progress";
 
     await module.save();
@@ -318,4 +318,14 @@ const updateModuleProgress = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+};
+
+// ── Export all functions ──────────────────────────────────────────────
+export {
+  createModule,
+  getModulesByProject,
+  getModule,
+  updateModule,
+  deleteModule,
+  updateModuleProgress   // ← This line was missing!
 };
