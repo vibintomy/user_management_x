@@ -283,11 +283,10 @@ export const deleteModule = async (req, res, next) => {
 // @route   PATCH /api/modules/:id/progress
 // @access  Private (Lead)
 // At the very bottom of moduleController.js, replace your current updateModuleProgress definition with:
-
 export const updateModuleProgress = async (req, res) => {
   try {
     const module = await Module.findById(req.params.id);
-    
+
     if (!module) {
       return res.status(404).json({ success: false, message: "Module not found" });
     }
@@ -296,7 +295,9 @@ export const updateModuleProgress = async (req, res) => {
       userId => userId.toString() === req.user._id.toString()
     );
 
-    const isLead = module.assignedLead?.toString() === req.user._id.toString();
+    const isLead =
+      req.user.role === 'lead' &&
+      module.project?.assignedLead?.toString() === req.user._id.toString();
 
     if (!isAssigned && !isLead) {
       return res.status(403).json({
@@ -318,14 +319,4 @@ export const updateModuleProgress = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-};
-
-// ── Export all functions ──────────────────────────────────────────────
-export {
-  createModule,
-  getModulesByProject,
-  getModule,
-  updateModule,
-  deleteModule,
-  updateModuleProgress   // ← This line was missing!
 };
