@@ -1,3 +1,7 @@
+// ============================================================================
+// UPDATED moduleController.js - Auto-Assign Users to Project
+// ============================================================================
+
 import Module from '../models/Module.js';
 import Project from '../models/Project.js';
 import User from '../models/user.js';
@@ -7,7 +11,7 @@ import User from '../models/user.js';
 // @access  Private (Lead)
 export const createModule = async (req, res, next) => {
   try {
-    const { name, description, estimatedTime, priority, assignedUsers } = req.body;
+    const { name, description, estimatedTime, priority, assignedUsers, startDate, endDate, notes } = req.body;
     const { projectId } = req.params;
 
     // Verify project exists
@@ -27,17 +31,20 @@ export const createModule = async (req, res, next) => {
       });
     }
 
-    // Verify assigned users belong to project
+    // ✅ AUTO-ASSIGN: Add users to project if not already assigned
     if (assignedUsers && assignedUsers.length > 0) {
-      const validUsers = assignedUsers.every(userId =>
-        project.assignedUsers.some(pUserId => pUserId.toString() === userId)
+      const projectUserIds = project.assignedUsers.map(id => id.toString());
+      
+      // Find users that need to be added to project
+      const newUsersForProject = assignedUsers.filter(
+        userId => !projectUserIds.includes(userId.toString())
       );
 
-      if (!validUsers) {
-        return res.status(400).json({
-          success: false,
-          message: 'Some assigned users are not part of the project'
-        });
+      // Add new users to project automatically
+      if (newUsersForProject.length > 0) {
+        console.log(`✅ Auto-assigning ${newUsersForProject.length} users to project`);
+        project.assignedUsers.push(...newUsersForProject);
+        await project.save();
       }
     }
 
@@ -47,7 +54,13 @@ export const createModule = async (req, res, next) => {
       description,
       project: projectId,
       estimatedTime,
+      actualTime: 0,
+      progress: 0,
+      status: 'pending',
       priority: priority || 'medium',
+      startDate,
+      endDate,
+      notes,
       assignedUsers: assignedUsers || [],
       createdBy: req.user._id
     });
@@ -179,18 +192,20 @@ export const updateModule = async (req, res, next) => {
       });
     }
 
-    // Verify assigned users belong to project
+    // ✅ AUTO-ASSIGN: Add users to project if not already assigned
     if (assignedUsers && assignedUsers.length > 0) {
-      const validUsers = assignedUsers.every(userId =>
-        module.project.assignedUsers.some(pUserId => pUserId.toString() === userId)
+      const projectUserIds = module.project.assignedUsers.map(id => id.toString());
+      
+      const newUsersForProject = assignedUsers.filter(
+        userId => !projectUserIds.includes(userId.toString())
       );
 
-      if (!validUsers) {
-        return res.status(400).json({
-          success: false,
-          message: 'Some assigned users are not part of the project'
-        });
+      if (newUsersForProject.length > 0) {
+        console.log(`✅ Auto-assigning ${newUsersForProject.length} users to project during module update`);
+        module.project.assignedUsers.push(...newUsersForProject);
+        await module.project.save();
       }
+      
       module.assignedUsers = assignedUsers;
     }
 
@@ -305,3 +320,4 @@ export const updateModuleProgress = async (req, res, next) => {
     next(error);
   }
 };
+
