@@ -122,12 +122,23 @@ export const getProject = async (req, res, next) => {
       });
     }
 
-    // Check authorization (Lead can only see their projects)
-    if (req.user.role === 'lead' && 
-        project.assignedLead._id.toString() !== req.user._id.toString()) {
+    const userId = req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+    const isLead = req.user.role === 'lead';
+    const isAssignedUser = project.assignedUsers.some(
+      u => u._id.toString() === userId
+    );
+    const isAssignedLead = project.assignedLead?._id?.toString() === userId;
+
+    // Authorization logic
+    if (!(
+      isAdmin || 
+      (isLead && isAssignedLead) ||
+      (req.user.role === 'user' && isAssignedUser)
+    )) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to view this project'
+        message: `Role '${req.user.role}' is not authorized to access this route`
       });
     }
 
