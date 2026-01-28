@@ -74,10 +74,10 @@ dailyUpdateSchema.post('save', async function() {
   if (updates.length > 0) {
     const module = await Module.findById(this.module);
     if (module) {
-      // Use the latest progress from the most recent update
+     
       const latestProgress = updates[0].progressPercentage;
       
-      // Calculate total actual time
+   
       const totalHours = updates.reduce((sum, update) => sum + update.hoursWorked, 0);
       
       module.progress = latestProgress;

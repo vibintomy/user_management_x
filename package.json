@@ -3,20 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
+
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
-  "keywords": [
-    "user-management",
-    "authentication",
-    "express",
-    "mongodb"
-  ],
-  "author": "",
-  "license": "ISC",
-  "description": "User Management Backend with Role-Based Authentication",
+
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -29,7 +25,11 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0"
   },
+
   "devDependencies": {
+    "@babel/preset-env": "^7.23.5",
+    "jest": "^29.7.0",
+    "node-mocks-http": "^1.17.2",
     "nodemon": "^3.0.2"
   }
 }
